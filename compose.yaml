@@ -1,0 +1,85 @@
+services:
+  app:
+    build: .
+    ports:
+      - ${spring_port}:${spring_port}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./log:/app/log
+    networks:
+      - pixel_network
+
+  postgres:
+    image: 'postgres:17'
+    restart: always
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${postgres_database}
+      POSTGRES_USER: ${postgres_username}
+      POSTGRES_PASSWORD: ${postgres_password}
+    ports:
+      - ${postgres_port}:5432
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${postgres_username}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - pixel_network
+
+  redis:
+    image: 'redis:latest'
+    env_file:
+      - .env
+    ports:
+      - ${redis_port}:6379
+    depends_on:
+      - postgres
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - pixel_network
+
+  elasticsearch:
+    image: 'elasticsearch:9.0.1'
+    env_file:
+      - .env
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms4g -Xmx4g
+    ports:
+      - ${elastic_port_client}:${elastic_port_client}
+      - ${elastic_port_node}:${elastic_port_node}
+    depends_on:
+      - postgres
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://${elastic_host}:${elastic_port_client}/ || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    networks:
+      - pixel_network
+
+volumes:
+  pgdata:
+  esdata:
+
+networks:
+  pixel_network:
