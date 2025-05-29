@@ -1,6 +1,7 @@
 package software.pxel.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PhoneService {
     private final PhoneRepository phoneRepository;
     private final EmailRepository emailRepository;
@@ -25,11 +27,11 @@ public class PhoneService {
         String currentUser = getCurrentUser();
         Optional<EmailEntity> currentEmail = emailRepository.findByEmail(currentUser);
 
-        UserEntity userEntity;
+        UserEntity userEntity = new UserEntity();
         if (currentEmail.isPresent()) {
             userEntity = currentEmail.get().getUserEntity();
         } else {
-            throw new RuntimeException("Phone not registered in phone_data");
+            log.error("Could not find phone for user {}", currentUser);
         }
 
         PhoneEntity phoneEntity = new PhoneEntity();
@@ -50,15 +52,11 @@ public class PhoneService {
             if (allUserPhones.size() > 1) {
                 PhoneEntity phoneEntity = phoneRepository.findByPhone(phone)
                         .orElseThrow(() -> new RuntimeException("Phone doesn't exist"));
-                try {
-                    phoneRepository.delete(phoneEntity);
-                    searchService.deleteUserFromIndex(phoneEntity.getUserEntity());
-                } catch (RuntimeException e) {
-                    throw new RuntimeException("Error deleting phone", e);
-                }
-            } else {
-                throw new RuntimeException("Can't delete only one have phone");
+                phoneRepository.delete(phoneEntity);
+                searchService.deleteUserFromIndex(phoneEntity.getUserEntity());
             }
+        } else {
+            log.error("Could not delete phone {}", phone);
         }
     }
 
@@ -76,6 +74,8 @@ public class PhoneService {
                     searchService.addUserToIndex(phoneEntity.getUserEntity());
                 }
             });
+        } else {
+            log.error("Phone not registered in phone_data {}", currentEmail);
         }
     }
 

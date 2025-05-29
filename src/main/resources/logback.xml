@@ -1,0 +1,61 @@
+<configuration>
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="app_error" class="ch.qos.logback.core.FileAppender">
+        <file>log/app_error.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="account" class="ch.qos.logback.core.FileAppender">
+        <file>log/account.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="email" class="ch.qos.logback.core.FileAppender">
+        <file>log/email.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="phone" class="ch.qos.logback.core.FileAppender">
+        <file>log/phone.log</file>
+        <append>true</append>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="software.pxel.TestPioneerApplication" level="error" additivity="false">
+        <appender-ref ref="app_error"/>
+    </logger>
+
+    <logger name="software.pxel.service.AccountService" level="info" additivity="false">
+        <appender-ref ref="account"/>
+    </logger>
+
+    <logger name="software.pxel.service.EmailService" level="info" additivity="false">
+        <appender-ref ref="email"/>
+    </logger>
+
+    <logger name="software.pxel.service.PhoneService" level="info" additivity="false">
+        <appender-ref ref="phone"/>
+    </logger>
+
+    <root level="error">
+        <appender-ref ref="console"/>
+        <appender-ref ref="app_error"/>
+    </root>
+
+</configuration>

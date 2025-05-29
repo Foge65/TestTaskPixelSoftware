@@ -1,6 +1,7 @@
 package software.pxel.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class EmailService {
     private final EmailRepository emailRepository;
     private final SearchService searchService;
@@ -22,11 +24,11 @@ public class EmailService {
         String currentUser = getCurrentUser();
         Optional<EmailEntity> currentEmail = emailRepository.findByEmail(currentUser);
 
-        UserEntity userEntity;
+        UserEntity userEntity = new UserEntity();
         if (currentEmail.isPresent()) {
             userEntity = currentEmail.get().getUserEntity();
         } else {
-            throw new RuntimeException("Email not registered in email_data");
+            log.error("Email not registered in email_data {}", currentEmail);
         }
 
         EmailEntity emailEntity = new EmailEntity();
@@ -47,15 +49,11 @@ public class EmailService {
             if (allUserEmails.size() > 1) {
                 EmailEntity emailEntity = emailRepository.findByEmail(email)
                         .orElseThrow(() -> new RuntimeException("Email doesn't exist"));
-                try {
-                    emailRepository.delete(emailEntity);
-                    searchService.deleteUserFromIndex(emailEntity.getUserEntity());
-                } catch (RuntimeException e) {
-                    throw new RuntimeException("Error deleting entity", e);
-                }
-            } else {
-                throw new RuntimeException("Can't delete only one have email");
+                emailRepository.delete(emailEntity);
+                searchService.deleteUserFromIndex(emailEntity.getUserEntity());
             }
+        } else {
+            log.error("Error deleting email {}", currentEmail);
         }
     }
 
@@ -73,6 +71,8 @@ public class EmailService {
                     searchService.addUserToIndex(emailEntity.getUserEntity());
                 }
             });
+        } else {
+            log.error("Email not registered in email_data {}", currentEmail);
         }
     }
 

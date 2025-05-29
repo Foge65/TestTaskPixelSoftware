@@ -1,6 +1,7 @@
 package software.pxel.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AccountService {
     private static final BigDecimal GROWTH_MULTIPLIER = BigDecimal.valueOf(1.1);
     private static final BigDecimal MAX_MULTIPLIER = BigDecimal.valueOf(2.07);
@@ -61,11 +63,11 @@ public class AccountService {
                     .orElseThrow(() -> new RuntimeException("User to not found"));
 
             if (from.getBalance().compareTo(amount) < 0) {
-                throw new RuntimeException("Insufficient funds");
+                log.error("Account balance is less than zero");
+            } else {
+                from.setBalance(from.getBalance().subtract(amount));
+                to.setBalance(to.getBalance().add(amount));
             }
-
-            from.setBalance(from.getBalance().subtract(amount));
-            to.setBalance(to.getBalance().add(amount));
         }
     }
 
