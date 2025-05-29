@@ -1,0 +1,32 @@
+server:
+  port: ${spring_port}
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/${postgres_database}
+    username: ${postgres_username}
+    password: ${postgres_password}
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+
+  flyway:
+    enabled: true
+    url: jdbc:postgresql://postgres:5432/${postgres_database}
+    user: ${postgres_username}
+    password: ${postgres_password}
+
+  elasticsearch:
+    uris: http://elasticsearch:${elastic_port_client}
+
+  cache:
+    type: redis
+  data:
+    redis:
+      host: redis
+      port: ${redis_port}
+
+jwt:
+  secret: ${jwt_secret}
+  lifetime: ${jwt_lifetime}
